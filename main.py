@@ -3,42 +3,34 @@ from tkinter import *
 from tkinter import ttk
 
 
-class PixelPainterCanvas(Canvas):
+class PixelPaintingCanvas(Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         
         self.bind("<Button-1>", self.paintsinglepixel)
         self.bind("<B1-Motion>", self.paintpixels)
-        
-        self.x = 0
-        self.y = 0
     
     def paintsinglepixel(self, event):
-        self.x, self.y = self.canvasx(event.x), self.canvasy(event.y)
+        x, y = self.canvasx(event.x), self.canvasy(event.y)
         
-        coords = self.pixelcalc(self.x, self.y)
-        self.create_rectangle(*coords, fill='red')
-        
-        
-        
-        
+        rect_coords = self.pixelcalc(x, y)
+        self.create_rectangle(rect_coords, fill='red', outline='red')
+         
     def paintpixels(self, event):
-        newx, newy = self.canvasx(event.x), self.canvasy(event.y)
+        x, y = self.canvasx(event.x), self.canvasy(event.y)
         
-        self.create_line(self.x, self.y, newx, newy, width=20)
-        self.x, self.y = newx, newy
+        rect_coords = self.pixelcalc(x, y)
+        self.create_rectangle(rect_coords, fill='red', outline='red')
         
     def pixelcalc(self, x, y):
-        print(x, y)
         size = 20
         
         px = x // size
         py = y // size
         
-        topx, topy = px*20, py*20
-        bottomx, bottomy = (px+1)*20, (py+1)*20
+        topx, topy = px*size, py*size
+        bottomx, bottomy = (px+1)*size, (py+1)*size
         
-        print(topx, topy, bottomx, bottomy)
         return (topx, topy, bottomx, bottomy)
 
 
@@ -72,7 +64,7 @@ class PiePixelPainter():
                 
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)
-        canvas = PixelPainterCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
+        canvas = PixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
         h_scroll['command'] = canvas.xview
         v_scroll['command'] = canvas.yview
         
@@ -82,8 +74,7 @@ class PiePixelPainter():
         root.grid_columnconfigure(0, weight=1)
         root.grid_rowconfigure(0, weight=1)
         
-        self.x = 0
-        self.y = 0
+
         
         
         
