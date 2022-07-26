@@ -1,40 +1,35 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import colorchooser
 
 
 class PixelPaintingCanvas(Canvas):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         
-        self.paintedcoordsid = []
-        self.paintcolor = 'black'
+        self.paintcolor = 'black'    
         
         self.bind("<Button-1>", self.paintsinglepixel)
         self.bind("<B1-Motion>", self.paintpixels)
         
+    def getcolor(self):
+        return self.paintcolor
+    
     def setcolor(self, color):
         self.paintcolor = color
-        
-    def erase(self):
-        x, y = self.canvasx(event.x), self.canvasy(event.y)
-        
-        rect_coords = self.pixelcalc(x, y)
-        self.delete()
-    
+
     def paintsinglepixel(self, event):
         x, y = self.canvasx(event.x), self.canvasy(event.y)
         
         rect_coords = self.pixelcalc(x, y)
-        id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline=self.paintcolor)
-        self.paintedcoordsid.append(id)
+        self.create_rectangle(rect_coords, fill=self.paintcolor, outline=self.paintcolor)
          
     def paintpixels(self, event):
         x, y = self.canvasx(event.x), self.canvasy(event.y)
         
         rect_coords = self.pixelcalc(x, y)
-        id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline=self.paintcolor)
-        self.paintedcoordsid.append(id)
+        self.create_rectangle(rect_coords, fill=self.paintcolor, outline=self.paintcolor)
         
     def pixelcalc(self, x, y):
         size = 20
@@ -45,7 +40,7 @@ class PixelPaintingCanvas(Canvas):
         topx, topy = px*size, py*size
         bottomx, bottomy = (px+1)*size, (py+1)*size
         
-        return (topx, topy, bottomx, bottomy)
+        return (topx-2, topy-2, bottomx-2, bottomy-2)
 
 
 class PiePixelPainter():
@@ -75,25 +70,7 @@ class PiePixelPainter():
         menu_edit.add_command(label='Redo')
         menu_edit.add_separator()
         menu_edit.add_command(label='Options...')
-        
-        interface = ttk.Frame(root)
-        interface.grid(column=0, row=0, sticky=(N, S, W, E))
-        interface['padding'] = 5
-        
-        colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background='red', relief='sunken')
-        colorselector = ttk.Frame(interface, height=30, width=30, style='ColorSelector.TFrame')
-        colorselector.grid(column=0, row=0, sticky=W)
-        ttk.Label(interface, text='color').grid(column=0, row=1, sticky=(W, N, S))
-        
-        eraserselectorstyle = ttk.Style()
-        eraserselectorstyle.configure('EraserSelector.TFrame', background='white', relief='sunken')
-        eraserselector = ttk.Frame(interface, height=30, width=30, style='EraserSelector.TFrame')
-        eraserselector.grid(column=1, row=0, sticky=W)
-        eraserselector.bind('<Button-1>', lambda e: self.canvas.setcolor('white'))
-        ttk.Label(interface, text='erase').grid(column=1, row=1, sticky=(W, N, S))
-        
-                
+
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)
         self.canvas = PixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
@@ -103,14 +80,30 @@ class PiePixelPainter():
         self.canvas.grid(column=0, row=1, sticky=(N, S, W, E))
         h_scroll.grid(column=0, row=2, sticky=(W, E))
         v_scroll.grid(column=1, row=1, sticky=(N, S))
-        root.grid_columnconfigure(0, weight=1)
-        root.grid_rowconfigure(0, weight=1)
+       
+        interface = ttk.Frame(root)
+        interface.grid(column=0, row=0, sticky=(N, S, W, E))
+        
+        colorframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
+        colorframe.grid(column=0, row=0, sticky=(W, E))
+        colorselectorstyle = ttk.Style()
+        colorselectorstyle.configure('ColorSelector.TFrame', background='black', relief='sunken')
+        colorselector = ttk.Frame(colorframe, height=33, width=33, style='ColorSelector.TFrame')
+        colorselector.grid(column=0, row=0, sticky=W)
+        colorselector.bind('<Button-1>', self.choosecolor)
+        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S)) 
+        
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(1, weight=1)
 
-
-        
-        
-        
+    def choosecolor(self, *args):
+        color = colorchooser.askcolor(initialcolor=self.canvas.getcolor())[1]
+        self.canvas.setcolor(color)
+        colorselectorstyle = ttk.Style()
+        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')     
 
 root = Tk()
 PiePixelPainter(root)
+
+
 root.mainloop()
