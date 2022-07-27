@@ -1,10 +1,15 @@
 
+from cgitb import text
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 
+from pyparsing import col
+from setuptools import Command
+
 
 class PixelPaintingCanvas(Canvas):
+    
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         
@@ -44,21 +49,46 @@ class PixelPaintingCanvas(Canvas):
 
 
 class NewDialog():
-    def __init__(self, subwindow, size): # size -> StringVar()
+    
+    def __init__(self, subwindow):
         root = Toplevel(subwindow)
+        self.root = root
+        
         root.title('New Window')
         
         frame = ttk.Frame(root)
-        ttk.Label(text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
-        ttk.Label(text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
+        frame.grid(column=0, row=0, sticky=(N, S, W, E))
         
+        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
+        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
         
+        self.w = StringVar()
+        wentry = ttk.Entry(frame, width=5, textvariable=self.w)
+        wentry.grid(column=1, row=0, sticky=(N, S, W, E))
         
+        self.h = StringVar()
+        hentry = ttk.Entry(frame, width=5, textvariable=self.h)
+        hentry.grid(column=1, row=1, sticky=(N, S, W, E))
+        
+        okbutton = ttk.Button(frame, text='Ok', command=self.setsize)
+        okbutton.grid(column=0, row=2, sticky=(N, S))
 
+        cancelbutton = ttk.Button(frame, text='Cancel', command=self.exitdiag)
+        cancelbutton.grid(column=1, row=2, sticky=(N, S))
+
+    def exitdiag(self):
+        self.root.destroy()
+        
+    def setsize(self):
+        self.root.destroy()
+        self.root.event_generate('<<SizeSetEvent>>')
+        
 
 class PiePixelPainter():
     
     def __init__(self, root):
+        self.root = root
+        
         root.title('PIE PIXEL PAINTER')
         root.option_add('*tearOff', False)
         
@@ -68,7 +98,7 @@ class PiePixelPainter():
         menu_file = Menu(menubar)
         menubar.add_cascade(menu=menu_file, label='File')
         menu_recent = Menu(menu_file)
-        menu_file.add_command(label='New')
+        menu_file.add_command(label='New', command=self.newcanvas)
         menu_file.add_separator()
         menu_file.add_command(label='Exit')  
 
@@ -103,9 +133,15 @@ class PiePixelPainter():
         colorselectorstyle = ttk.Style()
         colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')
     
-    def newcanvas(self, lenx, leny):
-        self.canvas.delete('all')
-        self.canvas['scrollregion'] = (0, 0, lenx, leny)
+    def newcanvas(self):
+        new = NewDialog(self.root)
+        new.bind('<<SetSizeEvent>>', command=getsize)
+        
+        def getsize(event):
+            lenx, leny = new.h.get(), new.w.get()
+            self.canvas['scrollregion'] = (0, 0, lenx, leny)
+            
+        
 
 root = Tk()
 PiePixelPainter(root)
