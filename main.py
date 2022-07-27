@@ -43,6 +43,19 @@ class PixelPaintingCanvas(Canvas):
         return (topx-2, topy-2, bottomx-2, bottomy-2)
 
 
+class NewDialog():
+    def __init__(self, subwindow, size): # size -> StringVar()
+        root = Toplevel(subwindow)
+        root.title('New Window')
+        
+        frame = ttk.Frame(root)
+        ttk.Label(text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
+        ttk.Label(text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
+        
+        
+        
+
+
 class PiePixelPainter():
     
     def __init__(self, root):
@@ -56,20 +69,8 @@ class PiePixelPainter():
         menubar.add_cascade(menu=menu_file, label='File')
         menu_recent = Menu(menu_file)
         menu_file.add_command(label='New')
-        menu_file.add_command(label='Open...')
-        menu_file.add_cascade(menu=menu_recent, label='Recent Files')
-        menu_file.add_separator()
-        menu_file.add_command(label='Save')
-        menu_file.add_command(label='Save As...')
         menu_file.add_separator()
         menu_file.add_command(label='Exit')  
-        
-        menu_edit = Menu(menubar)   
-        menubar.add_cascade(menu=menu_edit, label='Edit')
-        menu_edit.add_command(label='Undo')
-        menu_edit.add_command(label='Redo')
-        menu_edit.add_separator()
-        menu_edit.add_command(label='Options...')
 
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)
@@ -100,7 +101,11 @@ class PiePixelPainter():
         color = colorchooser.askcolor(initialcolor=self.canvas.getcolor())[1]
         self.canvas.setcolor(color)
         colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')     
+        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')
+    
+    def newcanvas(self, lenx, leny):
+        self.canvas.delete('all')
+        self.canvas['scrollregion'] = (0, 0, lenx, leny)
 
 root = Tk()
 PiePixelPainter(root)
