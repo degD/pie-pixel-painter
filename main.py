@@ -46,42 +46,6 @@ class PixelPaintingCanvas(Canvas):
         bottomx, bottomy = (px+1)*size, (py+1)*size
         
         return (topx-2, topy-2, bottomx-2, bottomy-2)
-
-
-class NewDialog():
-    
-    def __init__(self, subwindow):
-        root = Toplevel(subwindow)
-        self.root = root
-        
-        root.title('New Window')
-        
-        frame = ttk.Frame(root)
-        frame.grid(column=0, row=0, sticky=(N, S, W, E))
-        
-        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
-        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
-        
-        self.w = StringVar()
-        wentry = ttk.Entry(frame, width=5, textvariable=self.w)
-        wentry.grid(column=1, row=0, sticky=(N, S, W, E))
-        
-        self.h = StringVar()
-        hentry = ttk.Entry(frame, width=5, textvariable=self.h)
-        hentry.grid(column=1, row=1, sticky=(N, S, W, E))
-        
-        okbutton = ttk.Button(frame, text='Ok', command=self.setsize)
-        okbutton.grid(column=0, row=2, sticky=(N, S))
-
-        cancelbutton = ttk.Button(frame, text='Cancel', command=self.exitdiag)
-        cancelbutton.grid(column=1, row=2, sticky=(N, S))
-
-    def exitdiag(self):
-        self.root.destroy()
-        
-    def setsize(self):
-        self.root.destroy()
-        self.root.event_generate('<<SizeSetEvent>>')
         
 
 class PiePixelPainter():
@@ -134,13 +98,39 @@ class PiePixelPainter():
         colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')
     
     def newcanvas(self):
-        new = NewDialog(self.root)
-        new.bind('<<SetSizeEvent>>', command=getsize)
+        root = Toplevel(self.root)
+        root.title('New Window')
         
-        def getsize(event):
-            lenx, leny = new.h.get(), new.w.get()
-            self.canvas['scrollregion'] = (0, 0, lenx, leny)
-            
+        frame = ttk.Frame(root)
+        frame.grid(column=0, row=0, sticky=(N, S, W, E))
+        
+        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
+        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
+        
+        w = StringVar()
+        wentry = ttk.Entry(frame, width=5, textvariable=w)
+        wentry.grid(column=1, row=0, sticky=(N, S, W, E))
+        
+        h = StringVar()
+        hentry = ttk.Entry(frame, width=5, textvariable=h)
+        hentry.grid(column=1, row=1, sticky=(N, S, W, E))
+        
+        def setsize(*args):
+            root.destroy()
+            self.canvas.delete('all')
+            self.canvas['scrollregion'] = (0, 0, w.get(), h.get())
+        
+        def exitdiag(*args):
+            root.destroy()
+        
+        okbutton = ttk.Button(frame, text='Ok', command=setsize)
+        okbutton.grid(column=0, row=2, sticky=(N, S))
+
+        cancelbutton = ttk.Button(frame, text='Cancel', command=exitdiag)
+        cancelbutton.grid(column=1, row=2, sticky=(N, S))
+
+
+
         
 
 root = Tk()
