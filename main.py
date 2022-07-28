@@ -1,11 +1,7 @@
 
-from cgitb import text
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
-
-from pyparsing import col
-from setuptools import Command
 
 
 class PixelPaintingCanvas(Canvas):
@@ -47,6 +43,56 @@ class PixelPaintingCanvas(Canvas):
         
         return (topx-2, topy-2, bottomx-2, bottomy-2)
         
+
+class SizeDlg():
+    
+    def __init__(self, subwindow):
+        root = Toplevel(subwindow)
+        root.title('New Window')
+        
+        def exitdlg():
+            root.grab_release()
+            root.destroy()
+        
+        root.protocol('WM_DELETE_WINDOW', exitdlg)
+        root.transient(subwindow)
+        root.wait_visibility()
+        root.grab_set()
+        
+        frame = ttk.Frame(root)
+        frame.grid(column=0, row=0, sticky=(N, S, W, E))
+        
+        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
+        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
+        
+        w = StringVar()
+        wentry = ttk.Entry(frame, width=5, textvariable=w)
+        wentry.grid(column=1, row=0, sticky=(N, S, W, E))
+        
+        h = StringVar()
+        hentry = ttk.Entry(frame, width=5, textvariable=h)
+        hentry.grid(column=1, row=1, sticky=(N, S, W, E))
+        
+        self.state = 0 
+        # 1 -> new win, 0 -> old win
+        
+        def setstate():
+            self.state = 1
+            exitdlg()
+        
+        okbutton = ttk.Button(frame, text='Ok', command=setstate)
+        okbutton.grid(column=0, row=2, sticky=(N, S))
+        
+        cancelbutton = ttk.Button(frame, text='Cancel', command=exitdlg)
+        cancelbutton.grid(column=1, row=2, sticky=(N, S))
+        
+        root.wait_window()
+        
+    def getstate(self):
+        return self.state
+        
+        
+
 
 class PiePixelPainter():
     
@@ -98,36 +144,13 @@ class PiePixelPainter():
         colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')
     
     def newcanvas(self):
-        root = Toplevel(self.root)
-        root.title('New Window')
+        new = SizeDlg(self.root)
+        state = new.getstate()
         
-        frame = ttk.Frame(root)
-        frame.grid(column=0, row=0, sticky=(N, S, W, E))
-        
-        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
-        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
-        
-        w = StringVar()
-        wentry = ttk.Entry(frame, width=5, textvariable=w)
-        wentry.grid(column=1, row=0, sticky=(N, S, W, E))
-        
-        h = StringVar()
-        hentry = ttk.Entry(frame, width=5, textvariable=h)
-        hentry.grid(column=1, row=1, sticky=(N, S, W, E))
-        
-        def setsize(*args):
-            root.destroy()
+        if state == 1:
             self.canvas.delete('all')
-            self.canvas['scrollregion'] = (0, 0, w.get(), h.get())
-        
-        def exitdiag(*args):
-            root.destroy()
-        
-        okbutton = ttk.Button(frame, text='Ok', command=setsize)
-        okbutton.grid(column=0, row=2, sticky=(N, S))
+            
 
-        cancelbutton = ttk.Button(frame, text='Cancel', command=exitdiag)
-        cancelbutton.grid(column=1, row=2, sticky=(N, S))
 
 
 
