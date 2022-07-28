@@ -3,18 +3,18 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 
-
+# Separate it from this file
 class PixelPaintingCanvas(Canvas):
     
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         
-        self.paintcolor = 'black'    
+        self.paintcolor = '#000000' # 7 character    
         
         self.bind("<Button-1>", self.paintsinglepixel)
         self.bind("<B1-Motion>", self.paintpixels)
         
-        self.data = []
+        self.data = {}
         # Find a way to speed this up.
         
     def getcolor(self):
@@ -23,21 +23,50 @@ class PixelPaintingCanvas(Canvas):
     def setcolor(self, color):
         self.paintcolor = color
     
-    def savepixel(self, coords, color):
-        
-        self.data.append()
-
+    # 2 -> same coords, same colors
+    # 1 -> same coords, diff colors
+    # 0 -> diff coords  
+    def testnew(self, new_coords, new_color):
+        for id in self.data.keys():
+            coords = self.data[id][0]
+            color = self.data[id][1]
+            
+            if coords == new_coords:
+                if color == new_color:
+                    return (2, id)
+                else:
+                    return (1, id)
+        return (0, 0)
+    
     def paintsinglepixel(self, event):
         x, y = self.canvasx(event.x), self.canvasy(event.y)
-        
         rect_coords = self.pixelcalc(x, y)
-        self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-         
+        
+        status, id = self.testnew(rect_coords, self.paintcolor)
+        
+        if status == 0:
+            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+            self.data[id] = (rect_coords, self.paintcolor)
+        elif status == 1:
+            self.delete(id)
+            self.data.pop(id)
+            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+            self.data[id] = (rect_coords, self.paintcolor)
+  
     def paintpixels(self, event):
         x, y = self.canvasx(event.x), self.canvasy(event.y)
-        
         rect_coords = self.pixelcalc(x, y)
-        self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+        
+        status, id = self.testnew(rect_coords, self.paintcolor)
+        
+        if status == 0:
+            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+            self.data[id] = (rect_coords, self.paintcolor)
+        elif status == 1:
+            self.delete(id)
+            self.data.pop(id)
+            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+            self.data[id] = (rect_coords, self.paintcolor)
         
     def pixelcalc(self, x, y):
         size = 20
@@ -142,11 +171,19 @@ class PiePixelPainter():
         colorframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
         colorframe.grid(column=0, row=0, sticky=(W, E))
         colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background='black', relief='sunken')
+        colorselectorstyle.configure('ColorSelector.TFrame', background='#000000', relief='sunken')
         colorselector = ttk.Frame(colorframe, height=33, width=33, style='ColorSelector.TFrame')
         colorselector.grid(column=0, row=0, sticky=W)
         colorselector.bind('<Button-1>', self.choosecolor)
-        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S)) 
+        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S))
+        
+        eraserframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
+        eraserframe.grid(column=1, row=0, sticky=(W, E))
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
+        eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
+        eraser.grid(column=0, row=0, sticky=W)
+        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, N, S)) 
         
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
