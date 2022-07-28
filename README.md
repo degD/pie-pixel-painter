@@ -1,2 +1,2 @@
 # pie-pixel-painter
-A pixel painting tool
+A little pixel painting tool.
