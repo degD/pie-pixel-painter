@@ -1,84 +1,9 @@
 
 from tkinter import *
 from tkinter import ttk
+from pixel_canvas import PixelPaintingCanvas
 from tkinter import colorchooser
-
-# Separate it from this file
-class PixelPaintingCanvas(Canvas):
-    
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, **kwargs)
-        
-        self.paintcolor = '#000000' # 7 character    
-        
-        self.bind("<Button-1>", self.paintsinglepixel)
-        self.bind("<B1-Motion>", self.paintpixels)
-        
-        self.data = {}
-        # Find a way to speed this up.
-        
-    def getcolor(self):
-        return self.paintcolor
-    
-    def setcolor(self, color):
-        self.paintcolor = color
-    
-    # 2 -> same coords, same colors
-    # 1 -> same coords, diff colors
-    # 0 -> diff coords  
-    def testnew(self, new_coords, new_color):
-        for id in self.data.keys():
-            coords = self.data[id][0]
-            color = self.data[id][1]
-            
-            if coords == new_coords:
-                if color == new_color:
-                    return (2, id)
-                else:
-                    return (1, id)
-        return (0, 0)
-    
-    def paintsinglepixel(self, event):
-        x, y = self.canvasx(event.x), self.canvasy(event.y)
-        rect_coords = self.pixelcalc(x, y)
-        
-        status, id = self.testnew(rect_coords, self.paintcolor)
-        
-        if status == 0:
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
-        elif status == 1:
-            self.delete(id)
-            self.data.pop(id)
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
-  
-    def paintpixels(self, event):
-        x, y = self.canvasx(event.x), self.canvasy(event.y)
-        rect_coords = self.pixelcalc(x, y)
-        
-        status, id = self.testnew(rect_coords, self.paintcolor)
-        
-        if status == 0:
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
-        elif status == 1:
-            self.delete(id)
-            self.data.pop(id)
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
-        
-    def pixelcalc(self, x, y):
-        size = 20
-        
-        px = x // size
-        py = y // size
-        
-        topx, topy = px*size, py*size
-        bottomx, bottomy = (px+1)*size, (py+1)*size
-        
-        return (topx, topy, bottomx, bottomy)
-        
+from tkinter import filedialog
 
 class SizeDlg():
     
@@ -148,8 +73,9 @@ class PiePixelPainter():
         
         menu_file = Menu(menubar)
         menubar.add_cascade(menu=menu_file, label='File')
-        menu_recent = Menu(menu_file)
         menu_file.add_command(label='New', command=self.newcanvas)
+        menu_file.add_separator()
+        menu_file.add_command(label='Save As...', command=self.save_as_canvas) # Not finished!
         menu_file.add_separator()
         menu_file.add_command(label='Exit', command=root.destroy)  
 
@@ -168,6 +94,7 @@ class PiePixelPainter():
         interface = ttk.Frame(root)
         interface.grid(column=0, row=0, sticky=(N, S, W, E))
         
+        # COLOR
         colorframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
         colorframe.grid(column=0, row=0, sticky=(W, E))
         colorselectorstyle = ttk.Style()
@@ -177,22 +104,41 @@ class PiePixelPainter():
         colorselector.bind('<Button-1>', self.choosecolor)
         ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S))
         
+        # ERASER
         eraserframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
         eraserframe.grid(column=1, row=0, sticky=(W, E))
         eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
         eraser.grid(column=0, row=0, sticky=W)
+        eraser.bind('<Button-1>', self.seterasermode)
         ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, N, S)) 
         
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
 
-    def choosecolor(self, *args):
-        color = colorchooser.askcolor(initialcolor=self.canvas.getcolor())[1]
+    # Simplify these functions
+    def choosecolor(self, event):
+        # To fix an error that occurs???
+        color = colorchooser.askcolor(title='Choose Color', parent=self.root, initialcolor=self.canvas.getcolor())
+        if color == None:
+            color = self.canvas.getcolor()
         self.canvas.setcolor(color)
+        
         colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='sunken')
+        colorselectorstyle.configure('ColorSelector.TFrame', background=color, relief='sunken')
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
+        
+        self.canvas.paint_mode()
+        
+    def seterasermode(self, event):
+        colorselectorstyle = ttk.Style()
+        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='raised')
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
+        
+        self.canvas.eraser_mode()
     
     def newcanvas(self):
         new = SizeDlg(self.root)
@@ -205,7 +151,10 @@ class PiePixelPainter():
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h
-            
+    
+    def save_as_canvas(self):
+        filename = filedialog.asksaveasfilename()
+
 
 root = Tk()
 PiePixelPainter(root)
