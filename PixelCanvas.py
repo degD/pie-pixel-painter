@@ -2,10 +2,13 @@
 from tkinter import *
 from tkinter import ttk
 
+
 class PixelPaintingCanvas(Canvas):
     
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
+        
+        self.size = 20
         
         self.paintcolor = '#000000' # 7 character  
         self.is_eraser = False
@@ -28,12 +31,22 @@ class PixelPaintingCanvas(Canvas):
     def paint_mode(self):
         self.is_eraser = False
     
+    # Rectangle to x, y coordinates
+    def convcoords(self, coords):
+        x1, y1, x2, y2 = coords[0], coords[1], coords[2], coords[3]
+        
+        x = (x1 + x2 // 2) // self.size
+        y = (y1 + y2 // 2) // self.size
+        
+        return (x, y)
+        
     # 2 -> same coords, same colors
     # 1 -> same coords, diff colors
     # 0 -> diff coords  
-    def testnew(self, new_coords, new_color):
+    def testnew(self, new_rect_coords, new_color):
         for id in self.data.keys():
             coords = self.data[id][0]
+            new_coords = self.convcoords(new_rect_coords)
             color = self.data[id][1]
             
             if coords == new_coords:
@@ -43,46 +56,51 @@ class PixelPaintingCanvas(Canvas):
                     return (1, id)
         return (0, 0)
     
+    def save_pixel(self, id, rect_coords, color):
+        coords = self.convcoords(rect_coords)
+        self.data[id] = (coords, color)
+    
     def paintsinglepixel(self, event):
-        x, y = self.canvasx(event.x), self.canvasy(event.y)
+        x, y = int(self.canvasx(event.x)), int(self.canvasy(event.y))
         rect_coords = self.pixelcalc(x, y)
         
         status, id = self.testnew(rect_coords, self.paintcolor)
         
         if status == 0:
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
+            self.save_pixel(id, rect_coords, self.paintcolor)
         elif status == 1:
             self.delete(id)
             self.data.pop(id)
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
+            self.save_pixel(id, rect_coords, self.paintcolor)
         
         if self.is_eraser:
             self.delete(id)
             self.data.pop(id)    
   
     def paintpixels(self, event):
-        x, y = self.canvasx(event.x), self.canvasy(event.y)
+        x, y = int(self.canvasx(event.x)), int(self.canvasy(event.y))
         rect_coords = self.pixelcalc(x, y)
         
         status, id = self.testnew(rect_coords, self.paintcolor)
         
         if status == 0:
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
+            self.save_pixel(id, rect_coords, self.paintcolor)
         elif status == 1:
             self.delete(id)
             self.data.pop(id)
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.data[id] = (rect_coords, self.paintcolor)
+            self.save_pixel(id, rect_coords, self.paintcolor)
             
         if self.is_eraser:
             self.delete(id)
             self.data.pop(id)  
-        
+    
+    # Rectangle coordinates
     def pixelcalc(self, x, y):
-        size = 20
+        size = self.size
         
         px = x // size
         py = y // size
@@ -91,3 +109,7 @@ class PixelPaintingCanvas(Canvas):
         bottomx, bottomy = (px+1)*size, (py+1)*size
         
         return (topx, topy, bottomx, bottomy)
+
+    def get_cv_data(self):
+        return self.data.values()
+    
