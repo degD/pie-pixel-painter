@@ -16,8 +16,10 @@ class SizeDlg():
             root.grab_release()
             root.destroy()
         
-        root.focus()
+        root.geometry('60x60+') # TODO:
         root.resizable(False, False)
+        
+        root.focus()
         root.protocol('WM_DELETE_WINDOW', exitdlg)
         root.transient(subwindow)
         root.wait_visibility()
@@ -66,8 +68,10 @@ class PiePixelEditor():
         root.title('PPP')
         root.option_add('*tearOff', False)
         
+        w_max = root.winfo_screenwidth()
+        h_max = root.winfo_screenheight()
+        root.maxsize(w_max, h_max)
         root.minsize(200, 200)
-        root.maxsize(1000, 800)
         
         menubar = Menu(root) # Menu bar
         root['menu'] = menubar
@@ -117,6 +121,8 @@ class PiePixelEditor():
         
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
+        
+        self.set_win_geo()
 
     # Simplify these functions
     def choosecolor(self, event):
@@ -148,15 +154,20 @@ class PiePixelEditor():
         
         if state:
             self.canvas.delete('all')
+            self.canvas.reset_data()
             
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h
+            
+        self.set_win_geo()
     
     def save_as_canvas(self):
         types_tuple = (('PIE Format', '.pie'), ('BMP Format', '.bmp'), ('PNG Format', '.png'), ('JPEG Format', '.jpg'), ('All Files', '*'))
         filepath = filedialog.asksaveasfilename(parent=self.root, title='Save As', defaultextension='.pie', filetypes=types_tuple)
-
+        
+        if filepath == '': return
+        
         with open(filepath, 'wb') as fb:
             
             if filepath.endswith('.pie'):
@@ -164,6 +175,16 @@ class PiePixelEditor():
                     x, y = p[0][0], p[0][1]
                     color = p[1]
                     PieWrite.write_p_data(x, y, color, fb)
+                    
+    def set_win_geo(self, w=800, h=600):
+        w_sc = self.root.winfo_screenwidth() 
+        h_sc = self.root.winfo_screenheight()
+        
+        y = (h_sc- h) // 2
+        x = (w_sc - w) // 2
+        
+        self.root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
 
         
 

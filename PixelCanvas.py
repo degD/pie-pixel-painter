@@ -113,3 +113,5 @@ class PixelPaintingCanvas(Canvas):
     def get_cv_data(self):
         return self.data.values()
     
+    def reset_data(self):
+        self.data.clear()
