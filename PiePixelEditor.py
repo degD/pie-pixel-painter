@@ -3,9 +3,12 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 from tkinter import filedialog
-from PixelCanvas import PixelPaintingCanvas
+from PPixelCanvas import PPixelPaintingCanvas
 import PieWrite
 
+
+# pixel -> pixel as we know
+# ppixel -> PIEpixel or PAINTING pixel
 class SizeDlg():
     
     def __init__(self, subwindow):
@@ -16,10 +19,12 @@ class SizeDlg():
             root.grab_release()
             root.destroy()
         
-        root.geometry('60x60+') # TODO:
-        root.resizable(False, False)
-        
+        abs_pointerx = root.winfo_pointerx() - root.winfo_vrootx()
+        abs_pointery = root.winfo_pointery() - root.winfo_vrooty()
+        root.geometry('+%d+%d' % (abs_pointerx, abs_pointery))
+
         root.focus()
+        root.resizable(False, False)
         root.protocol('WM_DELETE_WINDOW', exitdlg)
         root.transient(subwindow)
         root.wait_visibility()
@@ -57,7 +62,7 @@ class SizeDlg():
         return self.newcanvas
     
     def getsize(self):
-        return self.w.get(), self.h.get()
+        return int(self.w.get()), int(self.h.get())
       
 
 class PiePixelEditor():
@@ -85,8 +90,8 @@ class PiePixelEditor():
         menu_file.add_command(label='Exit', command=root.destroy)  
 
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
-        v_scroll = ttk.Scrollbar(root, orient=VERTICAL)
-        self.canvas = PixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
+        v_scroll = ttk.Scrollbar(root, orient=VERTICAL)        # 200x200 Ppixel
+        self.canvas = PPixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
         self.canvas['width'] = 1000
         self.canvas['height'] = 1000
         h_scroll['command'] = self.canvas.xview
@@ -122,7 +127,13 @@ class PiePixelEditor():
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
         
-        self.set_win_geo()
+        w_sc = self.root.winfo_screenwidth() 
+        h_sc = self.root.winfo_screenheight()
+        
+        y = (h_sc - 800) // 2
+        x = (w_sc - 600) // 2
+        
+        self.root.geometry('800x600+%d+%d' % (x, y))
 
     # Simplify these functions
     def choosecolor(self, event):
@@ -150,17 +161,17 @@ class PiePixelEditor():
     def newcanvas(self):
         new = SizeDlg(self.root)
         state = new.getstate()
-        w, h = new.getsize()
+        
+        size_pp = self.canvas.get_pp_size()
+        wpp, hpp = new.getsize()
+        w, h = wpp*size_pp, hpp*size_pp
         
         if state:
             self.canvas.delete('all')
             self.canvas.reset_data()
-            
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h
-            
-        self.set_win_geo()
     
     def save_as_canvas(self):
         types_tuple = (('PIE Format', '.pie'), ('BMP Format', '.bmp'), ('PNG Format', '.png'), ('JPEG Format', '.jpg'), ('All Files', '*'))
@@ -175,16 +186,3 @@ class PiePixelEditor():
                     x, y = p[0][0], p[0][1]
                     color = p[1]
                     PieWrite.write_p_data(x, y, color, fb)
-                    
-    def set_win_geo(self, w=800, h=600):
-        w_sc = self.root.winfo_screenwidth() 
-        h_sc = self.root.winfo_screenheight()
-        
-        y = (h_sc- h) // 2
-        x = (w_sc - w) // 2
-        
-        self.root.geometry('%dx%d+%d+%d' % (w, h, x, y))
-
-
-        
-
