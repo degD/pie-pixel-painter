@@ -124,6 +124,9 @@ class PiePixelEditor():
         menubar = Menu(root)
         root['menu'] = menubar
         
+        # To store image objects and protect them from getting garbage collected.
+        self.imglist = []
+        
         menu_file = Menu(menubar)
         menubar.add_cascade(menu=menu_file, label='File')
         menu_file.add_command(label='New', command=self.newcanvas)
@@ -150,17 +153,31 @@ class PiePixelEditor():
         interface = ttk.Frame(root)
         interface.grid(column=0, row=0, sticky=(N, S, W, E))
         
+        interframestyle = ttk.Style()
+        interframestyle.configure('ToolFrame.TFrame', borderwidth=2, bordercolor='#a6f7ef')
+        
+        paintframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
+        paintframe.grid(column=0, row=0, sticky=(W, E))
+
+
+        
         # The color button.
         # The procedure is rather long but actually simple.
         # Creating a main frame first, then creating the color selector as a frame in it.
         # Because we can't directly change it's color, we are changing the style 
         # of the color selector every time we choose a new color. Binding the left mouse button.
         # Lastly, adding the label.
-        colorframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
-        colorframe.grid(column=0, row=0, sticky=(W, E))
+        colorframe = ttk.Frame(interface, width=50, height=60, padding=(5, 3, 3, 0), style='ToolFrame.TFrame')
+        colorframe.grid(column=2, row=0, sticky=(W, E))
+        
         colorselectorstyle = ttk.Style()
         colorselectorstyle.configure('ColorSelector.TFrame', background='#000000', relief='sunken')
-        colorselector = ttk.Frame(colorframe, height=33, width=33, style='ColorSelector.TFrame')
+        
+        colorselector_img = PhotoImage(file=r'color-selector.png', width=33, height=33)
+        self.imglist.append(colorselector_img)
+        colorselector = ttk.Label(colorframe, compound='image')
+        colorselector['image'] = colorselector_img
+        
         colorselector.grid(column=0, row=0, sticky=W)
         colorselector.bind('<Button-1>', self.choosecolor)
         ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S))
