@@ -153,11 +153,13 @@ class PiePixelEditor():
         interface = ttk.Frame(root)
         interface.grid(column=0, row=0, sticky=(N, S, W, E))
         
-        interframestyle = ttk.Style()
-        interframestyle.configure('ToolFrame.TFrame', borderwidth=2, bordercolor='#a6f7ef')
+        paintframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3)
         
-        paintframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
-        paintframe.grid(column=0, row=0, sticky=(W, E))
+        paintstyle = ttk.Style()
+        paintstyle.configure('Painter.TFrame', background='#000000', relief='sunken')
+        
+        
 
 
         
@@ -167,11 +169,8 @@ class PiePixelEditor():
         # Because we can't directly change it's color, we are changing the style 
         # of the color selector every time we choose a new color. Binding the left mouse button.
         # Lastly, adding the label.
-        colorframe = ttk.Frame(interface, width=50, height=60, padding=(5, 3, 3, 0), style='ToolFrame.TFrame')
-        colorframe.grid(column=2, row=0, sticky=(W, E))
-        
-        colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background='#000000', relief='sunken')
+        colorframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3)
         
         colorselector_img = PhotoImage(file=r'color-selector.png', width=33, height=33)
         self.imglist.append(colorselector_img)
@@ -180,18 +179,18 @@ class PiePixelEditor():
         
         colorselector.grid(column=0, row=0, sticky=W)
         colorselector.bind('<Button-1>', self.choosecolor)
-        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, N, S))
+        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
         
         # The eraser button.
         # Similar to above, but only changing the relief as style when clicked. 
-        eraserframe = ttk.Frame(interface, padding=(5, 3, 3, 0))
-        eraserframe.grid(column=1, row=0, sticky=(W, E))
+        eraserframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3)
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
         eraser.grid(column=0, row=0, sticky=W)
         eraser.bind('<Button-1>', self.seterasermode)
-        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, N, S)) 
+        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
         
         # Adjusting the weights for resizing correctly.
         root.columnconfigure(0, weight=1)
