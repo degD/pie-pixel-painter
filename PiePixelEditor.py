@@ -148,49 +148,7 @@ class PiePixelEditor():
         h_scroll.grid(column=0, row=2, sticky=(W, E))
         v_scroll.grid(column=1, row=1, sticky=(N, S))
 
-        # This part is for interface, the part that is above the canvas, where you select tools.
-        # Each tool is actually a frame, where each frame consist of more frames and labels in them.
-        interface = ttk.Frame(root)
-        interface.grid(column=0, row=0, sticky=(N, S, W, E))
-        
-        paintframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3)
-        
-        paintstyle = ttk.Style()
-        paintstyle.configure('Painter.TFrame', background='#000000', relief='sunken')
-        
-        
-
-
-        
-        # The color button.
-        # The procedure is rather long but actually simple.
-        # Creating a main frame first, then creating the color selector as a frame in it.
-        # Because we can't directly change it's color, we are changing the style 
-        # of the color selector every time we choose a new color. Binding the left mouse button.
-        # Lastly, adding the label.
-        colorframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3)
-        
-        colorselector_img = PhotoImage(file=r'color-selector.png', width=33, height=33)
-        self.imglist.append(colorselector_img)
-        colorselector = ttk.Label(colorframe, compound='image')
-        colorselector['image'] = colorselector_img
-        
-        colorselector.grid(column=0, row=0, sticky=W)
-        colorselector.bind('<Button-1>', self.choosecolor)
-        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
-        
-        # The eraser button.
-        # Similar to above, but only changing the relief as style when clicked. 
-        eraserframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3)
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
-        eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
-        eraser.grid(column=0, row=0, sticky=W)
-        eraser.bind('<Button-1>', self.seterasermode)
-        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
+        # TODO: Re-made interface!!!
         
         # Adjusting the weights for resizing correctly.
         root.columnconfigure(0, weight=1)
@@ -221,11 +179,24 @@ class PiePixelEditor():
         
         # Modifing styles because otherwise it's also needed to change the frames.
         colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background=color, relief='sunken')
+        colorselectorstyle.configure('Painter.TFrame', background=color, relief='sunken')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         
         # Setting to the painting mode.
+        self.canvas.paint_mode()
+        
+    def setpaintmode(self, event):
+        """Activate painting.
+
+        Args:
+            event (tkinter bind event): Not used.
+        """
+        colorselectorstyle = ttk.Style()
+        colorselectorstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='sunken')
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
+        
         self.canvas.paint_mode()
         
     def seterasermode(self, event):
@@ -235,7 +206,7 @@ class PiePixelEditor():
             event (tkinter bind event): Not used.
         """
         colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('ColorSelector.TFrame', background=self.canvas.getcolor(), relief='raised')
+        colorselectorstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='raised')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
         
