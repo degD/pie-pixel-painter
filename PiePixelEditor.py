@@ -148,7 +148,54 @@ class PiePixelEditor():
         h_scroll.grid(column=0, row=2, sticky=(W, E))
         v_scroll.grid(column=1, row=1, sticky=(N, S))
 
-        # TODO: Re-made interface!!!
+        # This part is for interface, the part that is above the canvas, where you select tools.
+        # Each tool is actually a frame, where each frame consist of more frames and labels in them.
+        # The tools are the painter, eraser, color selector, color picker, filler, zoom out, zoom in.
+        interface = ttk.Frame(root)
+        interface.grid(column=0, row=0, sticky=(N, S, W, E))
+
+        # The paint button.
+        # The procedure is rather long but actually simple.
+        # Because we can't directly change it's color, we are changing the style 
+        # of the painter every time we choose a new color. Binding to the left mouse button.
+        # Lastly, adding the label.
+        paintframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3)
+        paintstyle = ttk.Style()
+        paintstyle.configure('Painter.TFrame', background='#000000', relief='sunken')
+        painter = ttk.Frame(paintframe, height=33, width=33, style='Painter.TFrame')
+        painter.grid(column=0, row=0, sticky=W, padx=2, pady=2)
+        painter.bind('<Button-1>', self.setpaintmode)
+        ttk.Label(paintframe, text='paint', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
+        
+        # The eraser button.
+        # Similar to above, but only changing the relief as style when clicked. 
+        eraserframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3)
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
+        eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
+        eraser.grid(column=0, row=0, sticky=W, padx=2, pady=2)
+        eraser.bind('<Button-1>', self.seterasermode)
+        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
+        
+        # The color selector button.
+        # Similar to two preceding tools, only difference is that it uses an label
+        # with an image instead of a color. The rest are same.
+        colorframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3)
+        
+        colorselector_img = PhotoImage(file=r'color-wheel.png', width=33, height=33)
+        self.imglist.append(colorselector_img)
+        colorselector = ttk.Label(colorframe, compound='image')
+        colorselector['image'] = colorselector_img
+        
+        colorselector.grid(column=0, row=0, sticky=W)
+        colorselector.bind('<Button-1>', self.choosecolor)
+        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
+        
+        # A separator.
+        ttk.Frame(interface, width=5, height=60, relief='raised', borderwidth=2).grid(column=3, row=0, sticky=(N, S, E, W), padx=3)
         
         # Adjusting the weights for resizing correctly.
         root.columnconfigure(0, weight=1)
