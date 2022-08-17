@@ -197,6 +197,23 @@ class PiePixelEditor():
         # A separator.
         ttk.Frame(interface, width=5, height=60, relief='raised', borderwidth=2).grid(column=3, row=0, sticky=(N, S, E, W), padx=3)
         
+        # The color picker.
+        cpickerfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        cpickerfrm.grid(column=4, row=0, sticky=(N, S, E, W), padx=3)
+        
+        cpicker_img = PhotoImage(file=r'color-picker.png', width=33, height=33)
+        self.imglist.append(cpicker_img)
+        cpicker = ttk.Label(cpickerfrm, compound='image')
+        cpicker['image'] = cpicker_img
+        
+        cpicker.grid(column=0, row=0, sticky=W)
+        cpicker.bind('<Button-1>', self.colorpick)
+        ttk.Label(cpickerfrm, text='picker', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
+        
+        # The canvas will raise an event, as we pick a new color. Catching the event
+        # and binding it, to be able to change the color of painter when needed.
+        self.canvas.bind('<<PickedColor>>', self.picked_color)
+        
         # Adjusting the weights for resizing correctly.
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
@@ -209,6 +226,28 @@ class PiePixelEditor():
         x = (w_sc - 600) // 2
         
         self.root.geometry('800x600+%d+%d' % (x, y))
+        
+    def picked_color(self, event):
+        """Will execute if picked a color to inform the painter and alter it's color.
+
+        Args:
+            event (tkinter bind event): Not used.
+        """
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor)
+        
+    def colorpick(self, event):
+        """Set to color picker mode.
+        
+        Args:
+            event (tkinter bind event): Not used.
+        """
+        self.canvas.change_mode('cpicker')
+
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor, relief='raised')
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')   
 
     def choosecolor(self, event):
         """Raise the color selector dialog and use the chosen
@@ -225,13 +264,13 @@ class PiePixelEditor():
         self.canvas.setcolor(color)
         
         # Modifing styles because otherwise it's also needed to change the frames.
-        colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('Painter.TFrame', background=color, relief='sunken')
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=color, relief='sunken')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         
         # Setting to the painting mode.
-        self.canvas.paint_mode()
+        self.canvas.change_mode('painter')
         
     def setpaintmode(self, event):
         """Activate painting.
@@ -239,12 +278,12 @@ class PiePixelEditor():
         Args:
             event (tkinter bind event): Not used.
         """
-        colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='sunken')
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='sunken')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         
-        self.canvas.paint_mode()
+        self.canvas.change_mode('painter')
         
     def seterasermode(self, event):
         """Activate the eraser.
@@ -252,13 +291,13 @@ class PiePixelEditor():
         Args:
             event (tkinter bind event): Not used.
         """
-        colorselectorstyle = ttk.Style()
-        colorselectorstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='raised')
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='raised')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
         
         # Setting the eraser.
-        self.canvas.eraser_mode()
+        self.canvas.change_mode('eraser')
     
     def newcanvas(self):
         """

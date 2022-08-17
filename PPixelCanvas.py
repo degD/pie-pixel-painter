@@ -1,4 +1,5 @@
 
+from os import stat
 from tkinter import *
 from tkinter import ttk
 
@@ -25,8 +26,8 @@ class PPixelPaintingCanvas(Canvas):
         # Each two digits are a byte, so 0-255 of RGB.
         self.paintcolor = '#000000'
         
-        # Whether the eraser is selected or not.
-        self.is_eraser = False
+        # Defines tool mode. Modes are 'painter', 'eraser', 'cpicker', 'filler'
+        self.tool_mode = 'picker'
         
         # These two special functions are for painting the canvas. They are binded to left-button and
         # left-button-movement, respectively.
@@ -40,6 +41,19 @@ class PPixelPaintingCanvas(Canvas):
         # painting pixels. That is how it is organized:
         # {id1: ((x1, y1), color1), id2: ((x2, y2), color2), ...}
         self.data = {}
+    
+    def change_mode(self, mode):
+        """Changes the tool.
+
+        Args:
+            mode (str): Should be one of these: painter, eraser, cpicker, filler
+        """
+        if mode not in ('painter', 'eraser', 'cpicker', 'filler'):
+            raise ValueError('Unknown mode!')
+        self.tool_mode = mode
+        
+    def get_mode(self):
+        return self.tool_mode
         
     def getcolor(self):
         """Returns the hex of current painting color.
@@ -56,18 +70,6 @@ class PPixelPaintingCanvas(Canvas):
             color (str): Use a color in hex format, as a string.
         """
         self.paintcolor = color
-    
-    def eraser_mode(self):
-        """
-        Set to erasing mode.
-        """
-        self.is_eraser = True
-        
-    def paint_mode(self):
-        """
-        Set to painting mode.
-        """
-        self.is_eraser = False
     
     def get_pp_size(self):
         """Return size of the painting pixels.
@@ -178,6 +180,13 @@ class PPixelPaintingCanvas(Canvas):
         # Checking, testing the coordinate.
         status, id = self.testnew(rect_coords, self.paintcolor)
         
+        # For color picking, using taken id to get the color of choosen ppixel.
+        if self.tool_mode == 'cpicker':
+            if status != 0:
+                self.paintcolor = self.data[id][1]
+                self.event_generate('<<PickedColor>>')
+            return
+            
         # And proceeds accordingly. Creating something on canvas will return an id.
         # At 0, only creating a square. At 1, removing the existing one and re-adding
         # A new square with a new id. Nothing happens at status 2, because it means
@@ -192,10 +201,10 @@ class PPixelPaintingCanvas(Canvas):
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
             self.save_ppixel(id, rect_coords, self.paintcolor)
         
-        if self.is_eraser:
+        if self.tool_mode == 'eraser':
             self.delete(id)
-            self.data.pop(id)    
-  
+            self.data.pop(id)
+    
     def paintppixels(self, event):
         """Paint multiple painting pixels.
 
@@ -208,6 +217,8 @@ class PPixelPaintingCanvas(Canvas):
         
         status, id = self.testnew(rect_coords, self.paintcolor)
         
+        if self.tool_mode == 'cpicker': return
+        
         if status == 0:
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
             self.save_ppixel(id, rect_coords, self.paintcolor)
@@ -217,7 +228,7 @@ class PPixelPaintingCanvas(Canvas):
             id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
             self.save_ppixel(id, rect_coords, self.paintcolor)
             
-        if self.is_eraser:
+        if self.tool_mode == 'eraser':
             self.delete(id)
             self.data.pop(id)  
             
@@ -234,3 +245,4 @@ class PPixelPaintingCanvas(Canvas):
         Reset stored canvas data.
         """
         self.data.clear()
+        
