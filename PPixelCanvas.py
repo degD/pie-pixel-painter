@@ -179,29 +179,34 @@ class PPixelPaintingCanvas(Canvas):
         
         # Checking, testing the coordinate.
         status, id = self.testnew(rect_coords, self.paintcolor)
-        
-        # For color picking, using taken id to get the color of choosen ppixel.
-        if self.tool_mode == 'cpicker':
-            if status != 0:
-                self.paintcolor = self.data[id][1]
-                self.event_generate('<<PickedColor>>')
-            return
-            
+    
         # And proceeds accordingly. Creating something on canvas will return an id.
         # At 0, only creating a square. At 1, removing the existing one and re-adding
         # A new square with a new id. Nothing happens at status 2, because it means
         # the square already exists. And there is the eraser, a step above painting.
-        # If erasing, paint as usual at first, but after getting the id, remove it.
-        if status == 0:
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.save_ppixel(id, rect_coords, self.paintcolor)
-        elif status == 1:
-            self.delete(id)
-            self.data.pop(id)
-            id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
-            self.save_ppixel(id, rect_coords, self.paintcolor)
+        # If erasing, paint as usual at first, but after getting the id, remove it.        
+        if self.tool_mode == 'painter':
+            if status == 0:
+                id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+                self.save_ppixel(id, rect_coords, self.paintcolor)
+            elif status == 1:
+                self.delete(id)
+                self.data.pop(id)
+                id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+                self.save_ppixel(id, rect_coords, self.paintcolor)
         
-        if self.tool_mode == 'eraser':
+        # For color picking, using taken id to get the color of choosen ppixel.
+        elif self.tool_mode == 'cpicker':
+            if status != 0:
+                self.paintcolor = self.data[id][1]
+                self.event_generate('<<PickedColor>>')
+
+        elif self.tool_mode == 'filler':
+            
+            
+
+        
+        elif self.tool_mode == 'eraser':
             self.delete(id)
             self.data.pop(id)
     

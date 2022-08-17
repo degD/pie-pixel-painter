@@ -210,6 +210,19 @@ class PiePixelEditor():
         cpicker.bind('<Button-1>', self.colorpick)
         ttk.Label(cpickerfrm, text='picker', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
         
+        # The fill tool.
+        fillfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        fillfrm.grid(column=5, row=0, sticky=(N, S, E, W), padx=3)
+        
+        fill_img = PhotoImage(file=r'fill-tool.png', width=33, height=33)
+        self.imglist.append(fill_img)
+        filltool = ttk.Label(fillfrm, compound='image')
+        filltool['image'] = fill_img
+        
+        filltool.grid(column=0, row=0, sticky=W)
+        filltool.bind('<Button-1>', self.fill_area)
+        ttk.Label(fillfrm, text='fill', anchor='center').grid(column=0, row=1, sticky=(N, S, W, E))
+        
         # The canvas will raise an event, as we pick a new color. Catching the event
         # and binding it, to be able to change the color of painter when needed.
         self.canvas.bind('<<PickedColor>>', self.picked_color)
@@ -226,6 +239,19 @@ class PiePixelEditor():
         x = (w_sc - 600) // 2
         
         self.root.geometry('800x600+%d+%d' % (x, y))
+    
+    def fill_area(self):
+        """Set to color fill mode.
+        
+        Args:
+            event (tkinter bind event): Not used.
+        """
+        self.canvas.change_mode('filler')
+
+        painterstyle = ttk.Style()
+        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor, relief='raised')
+        eraserstyle = ttk.Style()
+        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')  
         
     def picked_color(self, event):
         """Will execute if picked a color to inform the painter and alter it's color.
