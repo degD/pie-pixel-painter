@@ -135,7 +135,7 @@ class PiePixelEditor():
         menu_file.add_separator()
         menu_file.add_command(label='Exit', command=root.destroy)  
 
-        # Creating the scrollable canvas, with default size of 200x200 painting pixels.
+        # Creating the scrollable canvas, with default size of 50x50 painting pixels.
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)        
         self.canvas = PPixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
@@ -240,7 +240,7 @@ class PiePixelEditor():
         
         self.root.geometry('800x600+%d+%d' % (x, y))
     
-    def fill_area(self):
+    def fill_area(self, event):
         """Set to color fill mode.
         
         Args:

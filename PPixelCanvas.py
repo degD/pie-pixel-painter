@@ -18,7 +18,7 @@ class PPixelPaintingCanvas(Canvas):
             **kwargs: Arguments from tkinter canvas.
         """
         super().__init__(parent, **kwargs)
-        
+
         # Size of painting pixels in screen pixels.
         self.size = 20
         
@@ -27,7 +27,7 @@ class PPixelPaintingCanvas(Canvas):
         self.paintcolor = '#000000'
         
         # Defines tool mode. Modes are 'painter', 'eraser', 'cpicker', 'filler'
-        self.tool_mode = 'picker'
+        self.tool_mode = 'painter'
         
         # These two special functions are for painting the canvas. They are binded to left-button and
         # left-button-movement, respectively.
@@ -41,6 +41,14 @@ class PPixelPaintingCanvas(Canvas):
         # painting pixels. That is how it is organized:
         # {id1: ((x1, y1), color1), id2: ((x2, y2), color2), ...}
         self.data = {}
+        
+    def canv_geo(self):
+        """Return canvas width and height.
+
+        Returns:
+            tuple: width, height
+        """
+        return self['width'], self['height']
     
     def change_mode(self, mode):
         """Changes the tool.
@@ -200,10 +208,42 @@ class PPixelPaintingCanvas(Canvas):
             if status != 0:
                 self.paintcolor = self.data[id][1]
                 self.event_generate('<<PickedColor>>')
-
+        
         elif self.tool_mode == 'filler':
             
+            def fill_func(cx, cy, color):
+                rect_coords = self.ppixelcalc(cx, cy)
+                status, id = self.testnew(rect_coords, self.paintcolor)
+                
+                if cx > int(self['width']) or cx < 0 or cy > int(self['height']) or cy < 0:
+                    return
+                
+                if status == 0:
+                    id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+                    self.save_ppixel(id, rect_coords, self.paintcolor)
+                elif status == 1:
+                    if self.data[id][1] != color: return 
+                    self.delete(id)
+                    self.data.pop(id)
+                    id = self.create_rectangle(rect_coords, fill=self.paintcolor, outline='')
+                    self.save_ppixel(id, rect_coords, self.paintcolor)
+                elif status == 2: 
+                    return
+                
+                s = self.size
+                fill_func(cx+s, cy, color)
+                fill_func(cx-s, cy, color)
+                fill_func(cx, cy+s, color)
+                fill_func(cx, cy-s, color)
+                
+            if status == 0:
+                pp_color = '#FFFFFF'
+            elif status == 1:
+                pp_color = self.data[id][1]
+            elif status == 2: 
+                return 
             
+            fill_func(x, y, pp_color)
 
         
         elif self.tool_mode == 'eraser':
