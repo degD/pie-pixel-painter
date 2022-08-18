@@ -2,9 +2,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
-from tkinter import filedialog
 from PPixelCanvas import PPixelPaintingCanvas
-import PieWrite
 # Importing modules.
 
 # pixel -> pixel as we know
@@ -54,10 +52,12 @@ class SizeDlg():
         ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
         
         self.w = StringVar()
+        self.w.set(0)
         wentry = ttk.Entry(frame, width=5, textvariable=self.w)
         wentry.grid(column=1, row=0, sticky=(N, S, W, E), pady=4)
         
         self.h = StringVar()
+        self.h.set(0)
         hentry = ttk.Entry(frame, width=5, textvariable=self.h)
         hentry.grid(column=1, row=1, sticky=(N, S, W, E), pady=4)
         
@@ -95,7 +95,7 @@ class SizeDlg():
             tuple: A tuple with two integer items, first is width and second one is height.
         """
         return int(self.w.get()), int(self.h.get())
-      
+   
 
 class PiePixelEditor():
     """
@@ -111,6 +111,9 @@ class PiePixelEditor():
         
         root.title('PPP')
         
+        # To store image objects and protect them from getting garbage collected.
+        self.imglist = []
+        
         # This option is for preventing tearing off menus.
         root.option_add('*tearOff', False)
         
@@ -120,25 +123,16 @@ class PiePixelEditor():
         root.maxsize(w_max, h_max)
         root.minsize(200, 200)
         
-        # Creating the menubar and menus under it.
+        # Creating the menubar.
         menubar = Menu(root)
         root['menu'] = menubar
-        
-        # To store image objects and protect them from getting garbage collected.
-        self.imglist = []
-        
-        menu_file = Menu(menubar)
-        menubar.add_cascade(menu=menu_file, label='File')
-        menu_file.add_command(label='New', command=self.newcanvas)
-        menu_file.add_separator()
-        menu_file.add_command(label='Save As...', command=self.save_as_canvas)
-        menu_file.add_separator()
-        menu_file.add_command(label='Exit', command=root.destroy)  
+        menubar.add_command(label='New', command=self.newcanvas)
 
         # Creating the scrollable canvas, with default size of 50x50 painting pixels.
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)        
         self.canvas = PPixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
+        self.canvas.refresh_canvas_data(1000, 1000)
         self.canvas['width'] = 1000
         self.canvas['height'] = 1000
         h_scroll['command'] = self.canvas.xview
@@ -225,7 +219,7 @@ class PiePixelEditor():
         
         # The canvas will raise an event, as we pick a new color. Catching the event
         # and binding it, to be able to change the color of painter when needed.
-        self.canvas.bind('<<PickedColor>>', self.picked_color)
+        self.canvas.bind('<<PickedColorChangeIndicator>>', self.picked_color)
         
         # Adjusting the weights for resizing correctly.
         root.columnconfigure(0, weight=1)
@@ -246,10 +240,10 @@ class PiePixelEditor():
         Args:
             event (tkinter bind event): Not used.
         """
-        self.canvas.change_mode('filler')
+        self.canvas.change_mode(3)
 
         painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor, relief='raised')
+        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex, relief='raised')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')  
         
@@ -260,7 +254,7 @@ class PiePixelEditor():
             event (tkinter bind event): Not used.
         """
         painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor)
+        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex)
         
     def colorpick(self, event):
         """Set to color picker mode.
@@ -268,10 +262,10 @@ class PiePixelEditor():
         Args:
             event (tkinter bind event): Not used.
         """
-        self.canvas.change_mode('cpicker')
+        self.canvas.change_mode(2)
 
         painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.paintcolor, relief='raised')
+        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex, relief='raised')
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')   
 
@@ -296,7 +290,7 @@ class PiePixelEditor():
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         
         # Setting to the painting mode.
-        self.canvas.change_mode('painter')
+        self.canvas.change_mode(0)
         
     def setpaintmode(self, event):
         """Activate painting.
@@ -309,7 +303,7 @@ class PiePixelEditor():
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         
-        self.canvas.change_mode('painter')
+        self.canvas.change_mode(0)
         
     def seterasermode(self, event):
         """Activate the eraser.
@@ -323,7 +317,7 @@ class PiePixelEditor():
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
         
         # Setting the eraser.
-        self.canvas.change_mode('eraser')
+        self.canvas.change_mode(1)
     
     def newcanvas(self):
         """
@@ -341,29 +335,7 @@ class PiePixelEditor():
         
         # Editing the canvas.
         if state:
-            self.canvas.delete('all')
-            self.canvas.reset_data()
+            self.canvas.refresh_canvas_data(w, h)
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h
-    
-    def save_as_canvas(self):
-        """
-        Raising a file selecting dialog. If the file exists, then saves the existing file with a new name.
-        Otherwise just saves normally.
-        
-        Possible file formats:
-            PIE, BMP, PNG, JPG
-        """ 
-        # Can save in one of those formats.
-        types_tuple = (('PIE Format', '.pie'), ('BMP Format', '.bmp'), ('PNG Format', '.png'), ('JPEG Format', '.jpg'))
-        filepath = filedialog.asksaveasfilename(parent=self.root, title='Save As', defaultextension='.pie', filetypes=types_tuple)
-        
-        # If the user selects nothing, then returns from the function.
-        if filepath == '': return
-        
-        with open(filepath, 'wb') as fb:
-            
-            if filepath.endswith('.pie'):
-                data = self.canvas.get_cv_data()
-                PieWrite.write_p_data(data, fb)
