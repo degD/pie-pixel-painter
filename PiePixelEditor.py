@@ -132,7 +132,7 @@ class PiePixelEditor():
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)        
         self.canvas = PPixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
-        self.canvas.refresh_canvas_data(1000, 1000)
+        self.canvas.refresh_canvas_data(50, 50)
         self.canvas['width'] = 1000
         self.canvas['height'] = 1000
         h_scroll['command'] = self.canvas.xview
@@ -335,7 +335,7 @@ class PiePixelEditor():
         
         # Editing the canvas.
         if state:
-            self.canvas.refresh_canvas_data(w, h)
+            self.canvas.refresh_canvas_data(wpp, hpp)
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h

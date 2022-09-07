@@ -36,7 +36,7 @@ class PPixelPaintingCanvas(Canvas):
         # In each index, a tuple of color and id are stored. As an example:
         # [[('#000000', 1), ('#000000', 2)], [('#111111', 8)]]
         self.data = [[]]
-        self.w = self.h =0
+        self.w = self.h = 0
 
     def refresh_canvas_data(self, w, h):
         """Refresh canvas, and reset data.
@@ -47,7 +47,7 @@ class PPixelPaintingCanvas(Canvas):
         """
         self.delete('all')
         
-        x_l = [0 for _ in range(w)]
+        x_l = [(0, 0) for _ in range(w)]
         data_list = [list(x_l) for _ in range(h)]
         
         self.data = data_list
@@ -85,11 +85,11 @@ class PPixelPaintingCanvas(Canvas):
         Returns:
             tuple: independent coordinates.
         """
-        x1, y1, x2, y2 = square_coords[0], square_coords[1], square_coords[2], square_coords[3]
+        tx, ty, bx, by = square_coords[0], square_coords[1], square_coords[2], square_coords[3]
         
         size = self.pp_pixel_size
-        x = (x1 + x2 // 2) // size
-        y = (y1 + y2 // 2) // size
+        x = ((tx + bx) // 2) // size
+        y = ((ty + by) // 2) // size
         
         return (x, y)
     
@@ -103,7 +103,7 @@ class PPixelPaintingCanvas(Canvas):
         Returns:
             bool: True if yes and False if no.
         """
-        if self.data[y][x] == 0: 
+        if self.data[y][x] == (0, 0): 
             return False
         return True
 
@@ -122,7 +122,7 @@ class PPixelPaintingCanvas(Canvas):
         rawx, rawy = int(self.canvasx(event.x)), int(self.canvasy(event.y))
         sqrc = self.to_square_coords(rawx, rawy)
         x, y = self.independent_coords(sqrc)
-        
+
         # If painting...
         if self.tool_mode == 0:
             
@@ -149,7 +149,7 @@ class PPixelPaintingCanvas(Canvas):
                 p_color, p_id = self.data[y][x]
                 
                 self.delete(p_id)
-                self.data[y][x] = 0
+                self.data[y][x] = (0, 0)
         
         # Color picker.
         elif self.tool_mode == 2:
@@ -161,50 +161,68 @@ class PPixelPaintingCanvas(Canvas):
                 self.event_generate('<<PickedColorChangeIndicator>>')
                 # Event is for informing the program for updating the indicator of paint tool.
         
-        # And lastly fill tool.
-        # Using an recursive flood fill algorithm.
-        # Because of Python's internal design, recursion might fail oftenly.
+        # The fill tool.
+        # Iterative algorithm actually works similar to the recursive one.
+        # So briefly, starting from the clicked position, iterates trough a list that contains "coordinates to fill."
+        # It starts with only one, the starting position. After painting this location, looks to the border coordinates
+        # and checks if they are suitable for painting. If so, then appends these coordinates to the list, too.
+        # The algo uses a for loop, so it does the same process repeatedly on all appended coordinates, like recursion.
+        # If the coord already exists in the list, skips. And the code ends, when it iterates over all the coordinates.
         elif self.tool_mode == 3:
             
-            def flood_fill_func(rawx, rawy, color):
-                
+            # The list.
+            fill_list = [(rawx, rawy)]
+
+            # The color, that will be filled.
+            fill_area_color = self.data[y][x][0]
+
+            for rawx, rawy in fill_list:
+
                 sqrc = self.to_square_coords(rawx, rawy)
                 x, y = self.independent_coords(sqrc)
-                
+
                 if self.iscoord(x, y) == True:
                     p_color, p_id = self.data[y][x]
-                    
-                    if p_color == color:
+
+                    if p_color != self.color_hex:
                         self.delete(p_id)
                         new_id = self.create_rectangle(sqrc, fill=self.color_hex, outline='')
                         self.data[y][x] = (self.color_hex, new_id)
-                    else:
-                        return
-                        
+                
                 else:
                     new_id = self.create_rectangle(sqrc, fill=self.color_hex, outline='')
                     self.data[y][x] = (self.color_hex, new_id)
-                    
+
+                # Checking if the coordinate is suitable or not. 
+                # 'try/expect' is to check if the index is out of range.
+                # 'not in list' part is, of course, only allows appending if doesn't exist.
+                # Lastly, 'x/y > 0' part is to prevent negative indexing.
                 s = self.pp_pixel_size
-                if (not 0 < rawx < self.w) or (not 0 < rawy < self.h): return
-                
                 try:
-                    flood_fill_func(rawx+s, rawy, color)
-                    flood_fill_func(rawx-s, rawy, color)
-                    flood_fill_func(rawx, rawy+s, color)
-                    flood_fill_func(rawx, rawy-s, color)
-                except RecursionError:
-                    return
-            
-            if self.iscoord(x, y) == True:   
-                p_color, p_id = self.data[y][x]
-                
-                if p_color != self.color_hex:
-                    flood_fill_func(rawx, rawy, p_color)
-            
-            else:
-                flood_fill_func(rawx, rawy, 0)
-        
+                    if self.data[y][x+1][0] == fill_area_color:
+                        if (rawx+s, rawy) not in fill_list:
+                            fill_list.append((rawx+s, rawy))
+                except IndexError:
+                    pass
+                try:
+                    if self.data[y][x-1][0] == fill_area_color and x > 0:
+                        if (rawx-s, rawy) not in fill_list:
+                            fill_list.append((rawx-s, rawy))
+                except IndexError:
+                    pass                            
+                try:
+                    if self.data[y+1][x][0] == fill_area_color:
+                        if (rawx, rawy+s) not in fill_list:
+                            fill_list.append((rawx, rawy+s))
+                except IndexError:
+                    pass                            
+                try:
+                    if self.data[y-1][x][0] == fill_area_color and y > 0:
+                            if (rawx, rawy-s) not in fill_list:
+                                fill_list.append((rawx, rawy-s))
+                except IndexError:
+                    pass                            
+                                                             
     def motion_paint(self, event):
         """Tools when clicking while moving the mouse. Painter and eraser
 
@@ -235,7 +253,7 @@ class PPixelPaintingCanvas(Canvas):
                 p_color, p_id = self.data[y][x]
                 
                 self.delete(p_id)
-                self.data[y][x] = 0   
+                self.data[y][x] = (0, 0)   
     
     def change_mode(self, mode):
         """Change tool mode.
