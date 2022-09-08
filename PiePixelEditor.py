@@ -145,7 +145,8 @@ class PiePixelEditor():
         # This part is for interface, the part that is above the canvas, where you select tools.
         # Each tool is actually a frame, where each frame consist of more frames and labels in them.
         # The tools are the painter, eraser, color selector, color picker, filler, zoom out, zoom in.
-        interface = ttk.Frame(root)
+        ttk.Style().configure('Interface.TFrame', background='#dbdbdb')
+        interface = ttk.Frame(root, style='Interface.TFrame')
         interface.grid(column=0, row=0, sticky=(N, S, W, E))
 
         # The paint button.
@@ -154,7 +155,7 @@ class PiePixelEditor():
         # of the painter every time we choose a new color. Binding to the left mouse button.
         # Lastly, adding the label.
         paintframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3)
+        paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         paintstyle = ttk.Style()
         paintstyle.configure('Painter.TFrame', background='#000000', relief='sunken')
         painter = ttk.Frame(paintframe, height=33, width=33, style='Painter.TFrame')
@@ -165,7 +166,7 @@ class PiePixelEditor():
         # The eraser button.
         # Similar to above, but only changing the relief as style when clicked. 
         eraserframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3)
+        eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         eraserstyle = ttk.Style()
         eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
         eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
@@ -177,7 +178,7 @@ class PiePixelEditor():
         # Similar to two preceding tools, only difference is that it uses an label
         # with an image instead of a color. The rest are same.
         colorframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3)
+        colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         
         colorselector_img = PhotoImage(file=r'color-wheel.png', width=33, height=33)
         self.imglist.append(colorselector_img)
@@ -189,11 +190,11 @@ class PiePixelEditor():
         ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
         
         # A separator.
-        ttk.Frame(interface, width=5, height=60, relief='raised', borderwidth=2).grid(column=3, row=0, sticky=(N, S, E, W), padx=3)
+        ttk.Frame(interface, width=5, height=60, relief='raised', borderwidth=2).grid(column=3, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         
         # The color picker.
         cpickerfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        cpickerfrm.grid(column=4, row=0, sticky=(N, S, E, W), padx=3)
+        cpickerfrm.grid(column=4, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         
         cpicker_img = PhotoImage(file=r'color-picker.png', width=33, height=33)
         self.imglist.append(cpicker_img)
@@ -206,7 +207,7 @@ class PiePixelEditor():
         
         # The fill tool.
         fillfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
-        fillfrm.grid(column=5, row=0, sticky=(N, S, E, W), padx=3)
+        fillfrm.grid(column=5, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         
         fill_img = PhotoImage(file=r'fill-tool.png', width=33, height=33)
         self.imglist.append(fill_img)
