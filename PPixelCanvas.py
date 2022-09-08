@@ -107,6 +107,24 @@ class PPixelPaintingCanvas(Canvas):
             return False
         return True
 
+    def iscoord_inside(self, x, y):
+        """Tests if x, y is inside the canvas boundaries.
+        
+        Args:
+            x (int): coordinate
+            y (int): coordinate
+
+        Returns:
+            bool: True if yes and False if no.
+        """
+        if (x < 0) or (y < 0):
+            return False
+        try:
+            self.data[y][x]
+        except IndexError:
+            return False
+        return True
+
     def clicktools(self, event):
         """Tools when clicked on canvas. Controlled using the self.tool_mode.
         Tool modes are 0, 1, 2, 3 or paint, erase, color pick, fill.
@@ -122,6 +140,9 @@ class PPixelPaintingCanvas(Canvas):
         rawx, rawy = int(self.canvasx(event.x)), int(self.canvasy(event.y))
         sqrc = self.to_square_coords(rawx, rawy)
         x, y = self.independent_coords(sqrc)
+
+        # Testing x and y.
+        if not self.iscoord_inside(x, y): return
 
         # If painting...
         if self.tool_mode == 0:
@@ -232,6 +253,9 @@ class PPixelPaintingCanvas(Canvas):
         rawx, rawy = int(self.canvasx(event.x)), int(self.canvasy(event.y))
         sqrc = self.to_square_coords(rawx, rawy)
         x, y = self.independent_coords(sqrc)
+
+        # Testing x and y.
+        if not self.iscoord_inside(x, y): return
         
         if self.tool_mode == 0:
             

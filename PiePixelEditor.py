@@ -154,69 +154,87 @@ class PiePixelEditor():
         # Because we can't directly change it's color, we are changing the style 
         # of the painter every time we choose a new color. Binding to the left mouse button.
         # Lastly, adding the label.
-        paintframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        ttk.Style().configure('PaintFRM.TFrame', relief='sunken')
+        paintframe = ttk.Frame(interface, width=50, height=60, style='PaintFRM.TFrame', borderwidth=2)
         paintframe.grid(column=0, row=0, sticky=(N, S, E, W), padx=3, pady=2)
-        paintstyle = ttk.Style()
-        paintstyle.configure('Painter.TFrame', background='#000000', relief='sunken')
-        painter = ttk.Frame(paintframe, height=33, width=33, style='Painter.TFrame')
+        paintframe.bind('<Button-1>', self.setpaintmode)
+        ttk.Style().configure('Painter.TFrame', background='#000000')
+        painter = ttk.Frame(paintframe, height=30, width=40, style='Painter.TFrame', relief='flat')
         painter.grid(column=0, row=0, sticky=W, padx=2, pady=2)
         painter.bind('<Button-1>', self.setpaintmode)
-        ttk.Label(paintframe, text='paint', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
+        paintlbl = ttk.Label(paintframe, text='paint', anchor='center')
+        paintlbl.grid(column=0, row=1, sticky=N)
+        paintlbl.bind('<Button-1>', self.setpaintmode)
         
         # The eraser button.
-        # Similar to above, but only changing the relief as style when clicked. 
-        eraserframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        # Similar to above, but only changing the relief as style when clicked.
+        ttk.Style().configure('EraserFRM.TFrame', relief='raised')
+        eraserframe = ttk.Frame(interface, width=50, height=60, style='EraserFRM.TFrame', borderwidth=2)
         eraserframe.grid(column=1, row=0, sticky=(N, S, E, W), padx=3, pady=2)
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
-        eraser = ttk.Frame(eraserframe, height=33, width=33, style='Eraser.TFrame')
+        eraserframe.bind('<Button-1>', self.seterasermode)        
+        ttk.Style().configure('Eraser.TFrame', background='#FFFFFF')
+        eraser = ttk.Frame(eraserframe, height=30, width=40, style='Eraser.TFrame', relief='flat')
         eraser.grid(column=0, row=0, sticky=W, padx=2, pady=2)
-        eraser.bind('<Button-1>', self.seterasermode)
-        ttk.Label(eraserframe, text='eraser', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S)) 
+        eraser.bind('<Button-1>', self.seterasermode) 
+        eraserlbl = ttk.Label(eraserframe, text='eraser', style='EraseLabel.TLabel', anchor='center')
+        eraserlbl.grid(column=0, row=1, sticky=N)
+        eraserlbl.bind('<Button-1>', self.seterasermode) 
         
         # The color selector button.
         # Similar to two preceding tools, only difference is that it uses an label
         # with an image instead of a color. The rest are same.
-        colorframe = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        ttk.Style().configure('CSelect.TFrame', relief='raised')
+        colorframe = ttk.Frame(interface, width=50, height=60, style='CSelect.TFrame', borderwidth=2)
         colorframe.grid(column=2, row=0, sticky=(N, S, E, W), padx=3, pady=2)
+        colorframe.bind('<Button-1>', self.choosecolor)
         
         colorselector_img = PhotoImage(file=r'color-wheel.png', width=33, height=33)
         self.imglist.append(colorselector_img)
-        colorselector = ttk.Label(colorframe, compound='image')
-        colorselector['image'] = colorselector_img
-        
+
+        colorselector = ttk.Label(colorframe, image=colorselector_img, compound='image')
         colorselector.grid(column=0, row=0, sticky=W)
         colorselector.bind('<Button-1>', self.choosecolor)
-        ttk.Label(colorframe, text='color', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
+
+        colorlabel = ttk.Label(colorframe, text='color', anchor='center')
+        colorlabel.grid(column=0, row=1, sticky=(W, E, N, S))
+        colorlabel.bind('<Button-1>', self.choosecolor)
         
         # A separator.
         ttk.Frame(interface, width=5, height=60, relief='raised', borderwidth=2).grid(column=3, row=0, sticky=(N, S, E, W), padx=3, pady=2)
         
         # The color picker.
-        cpickerfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        ttk.Style().configure('cpFRM.TFrame', relief='raised')
+        cpickerfrm = ttk.Frame(interface, width=50, height=60, style='cpFRM.TFrame', borderwidth=2)
         cpickerfrm.grid(column=4, row=0, sticky=(N, S, E, W), padx=3, pady=2)
+        cpickerfrm.bind('<Button-1>', self.colorpick)
         
         cpicker_img = PhotoImage(file=r'color-picker.png', width=33, height=33)
         self.imglist.append(cpicker_img)
-        cpicker = ttk.Label(cpickerfrm, compound='image')
-        cpicker['image'] = cpicker_img
-        
+
+        cpicker = ttk.Label(cpickerfrm, image=cpicker_img, compound='image')
         cpicker.grid(column=0, row=0, sticky=W)
         cpicker.bind('<Button-1>', self.colorpick)
-        ttk.Label(cpickerfrm, text='picker', anchor='center').grid(column=0, row=1, sticky=(W, E, N, S))
+
+        cpickerlbl = ttk.Label(cpickerfrm, text='picker', anchor='center')
+        cpickerlbl.grid(column=0, row=1, sticky=(W, E, N, S))
+        cpickerlbl.bind('<Button-1>', self.colorpick)
         
         # The fill tool.
-        fillfrm = ttk.Frame(interface, width=50, height=60, relief='groove', borderwidth=2)
+        ttk.Style().configure('fillFRM.TFrame', relief='raised')
+        fillfrm = ttk.Frame(interface, width=50, height=60, style='fillFRM.TFrame', borderwidth=2)
         fillfrm.grid(column=5, row=0, sticky=(N, S, E, W), padx=3, pady=2)
+        fillfrm.bind('<Button-1>', self.fill_area)
         
         fill_img = PhotoImage(file=r'fill-tool.png', width=33, height=33)
         self.imglist.append(fill_img)
-        filltool = ttk.Label(fillfrm, compound='image')
-        filltool['image'] = fill_img
-        
+
+        filltool = ttk.Label(fillfrm, image=fill_img, compound='image')
         filltool.grid(column=0, row=0, sticky=W)
         filltool.bind('<Button-1>', self.fill_area)
-        ttk.Label(fillfrm, text='fill', anchor='center').grid(column=0, row=1, sticky=(N, S, W, E))
+
+        fill_lbl = ttk.Label(fillfrm, text='fill', anchor='center')
+        fill_lbl.grid(column=0, row=1, sticky=(N, S, W, E))
+        fill_lbl.bind('<Button-1>', self.fill_area)
         
         # The canvas will raise an event, as we pick a new color. Catching the event
         # and binding it, to be able to change the color of painter when needed.
@@ -241,23 +259,24 @@ class PiePixelEditor():
         Args:
             event (tkinter bind event): Not used.
         """
-        self.canvas.change_mode(3)
 
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex, relief='raised')
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')  
+        ttk.Style().configure('fillFRM.TFrame', relief='sunken')        
+        ttk.Style().configure('PaintFRM.TFrame', relief='raised')        
+        ttk.Style().configure('EraserFRM.TFrame', relief='raised')
+        ttk.Style().configure('CSelect.TFrame', relief='raised')
+        ttk.Style().configure('cpFRM.TFrame', relief='raised')
+
+        self.canvas.change_mode(3)
         
-    def picked_color(self, event):
+    def picked_color(self, event=0):
         """Will execute if picked a color to inform the painter and alter it's color.
 
         Args:
             event (tkinter bind event): Not used.
         """
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex)
+        ttk.Style().configure('Painter.TFrame', background=self.canvas.color_hex)
         
-    def colorpick(self, event):
+    def colorpick(self, event=0):
         """Set to color picker mode.
         
         Args:
@@ -265,18 +284,25 @@ class PiePixelEditor():
         """
         self.canvas.change_mode(2)
 
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.color_hex, relief='raised')
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')   
+        ttk.Style().configure('cpFRM.TFrame', relief='sunken')
+        ttk.Style().configure('PaintFRM.TFrame', relief='raised')
+        ttk.Style().configure('EraserFRM.TFrame', relief='raised')
+        ttk.Style().configure('CSelect.TFrame', relief='raised')
+        ttk.Style().configure('fillFRM.TFrame', relief='raised')
 
-    def choosecolor(self, event):
+    def choosecolor(self, event=0):
         """Raise the color selector dialog and use the chosen
         color as the painting color. And activate the painting tool.
 
         Args:
             event (tkinter bind event): Not used.
         """
+        ttk.Style().configure('CSelect.TFrame', relief='sunken')
+        ttk.Style().configure('PaintFRM.TFrame', relief='raised')
+        ttk.Style().configure('EraserFRM.TFrame', relief='raised')
+        ttk.Style().configure('cpFRM.TFrame', relief='raised')
+        ttk.Style().configure('fillFRM.TFrame', relief='raised')
+
         # Selecting a color.
         colordata = colorchooser.askcolor(title='Choose Color', parent=self.root, initialcolor=self.canvas.getcolor())
         color = colordata[1]
@@ -285,37 +311,36 @@ class PiePixelEditor():
         self.canvas.setcolor(color)
         
         # Modifing styles because otherwise it's also needed to change the frames.
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=color, relief='sunken')
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
+        ttk.Style().configure('Painter.TFrame', background=color)
+
+        self.setpaintmode()
         
-        # Setting to the painting mode.
-        self.canvas.change_mode(0)
-        
-    def setpaintmode(self, event):
+    def setpaintmode(self, event=0):
         """Activate painting.
 
         Args:
             event (tkinter bind event): Not used.
         """
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='sunken')
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='raised')
+        ttk.Style().configure('Painter.TFrame', background=self.canvas.getcolor())
+        ttk.Style().configure('PaintFRM.TFrame', relief='sunken')
+        ttk.Style().configure('EraserFRM.TFrame', relief='raised')
+        ttk.Style().configure('CSelect.TFrame', relief='raised')
+        ttk.Style().configure('cpFRM.TFrame', relief='raised')
+        ttk.Style().configure('fillFRM.TFrame', relief='raised')
         
         self.canvas.change_mode(0)
         
-    def seterasermode(self, event):
+    def seterasermode(self, event=0):
         """Activate the eraser.
 
         Args:
             event (tkinter bind event): Not used.
         """
-        painterstyle = ttk.Style()
-        painterstyle.configure('Painter.TFrame', background=self.canvas.getcolor(), relief='raised')
-        eraserstyle = ttk.Style()
-        eraserstyle.configure('Eraser.TFrame', background='#FFFFFF', relief='sunken')
+        ttk.Style().configure('EraserFRM.TFrame', relief='sunken')
+        ttk.Style().configure('PaintFRM.TFrame', relief='raised')
+        ttk.Style().configure('CSelect.TFrame', relief='raised')
+        ttk.Style().configure('cpFRM.TFrame', relief='raised')
+        ttk.Style().configure('fillFRM.TFrame', relief='raised')
         
         # Setting the eraser.
         self.canvas.change_mode(1)
