@@ -128,11 +128,17 @@ class PiePixelEditor():
         root['menu'] = menubar
         menubar.add_command(label='New', command=self.newcanvas)
 
-        # Creating the scrollable canvas, with default size of 50x50 painting pixels.
+        # Size values for the canvas. It will be 50x50 by painting pixels. And 
+        # Each painting pixel be 20 real pixels wide and high.
+        wpp = hpp = 50
+        pp_size = 50
+
+        # Creating the scrollable canvas.
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
         v_scroll = ttk.Scrollbar(root, orient=VERTICAL)        
-        self.canvas = PPixelPaintingCanvas(root, scrollregion=(0, 0, 1000, 1000), yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
-        self.canvas.refresh_canvas_data(50, 50)
+        self.canvas = PPixelPaintingCanvas(root, yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set, background='white')
+        self.canvas.refresh_canvas_data(wpp, hpp, pp_size)
+        self.canvas['scrollregion'] = (0, 0, wpp*pp_size, hpp*pp_size)
         self.canvas['width'] = 1000
         self.canvas['height'] = 1000
         h_scroll['command'] = self.canvas.xview
@@ -361,7 +367,7 @@ class PiePixelEditor():
         
         # Editing the canvas.
         if state:
-            self.canvas.refresh_canvas_data(wpp, hpp)
+            self.canvas.refresh_canvas_data(wpp, hpp, size_pp)
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h

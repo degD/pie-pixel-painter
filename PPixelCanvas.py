@@ -18,7 +18,7 @@ class PPixelPaintingCanvas(Canvas):
         super().__init__(parent, **kwargs)
 
         # Size of a pixel on canvas, in amount of pixels.
-        self.pp_pixel_size = 20
+        self.pp_pixel_size = 0
         
         # Indicates the current selected tool.
         # 0 -> painter, 1 -> eraser, 2 -> color picker, 3 -> fill 
@@ -38,12 +38,15 @@ class PPixelPaintingCanvas(Canvas):
         self.data = [[]]
         self.w = self.h = 0
 
-    def refresh_canvas_data(self, w, h):
+        self.realw = self.realh = 0
+
+    def refresh_canvas_data(self, w, h, s):
         """Refresh canvas, and reset data.
 
         Args:
             w (int): width
             h (int): height
+            s (int): painting pixel size
         """
         self.delete('all')
         
@@ -52,7 +55,45 @@ class PPixelPaintingCanvas(Canvas):
         
         self.data = data_list
         self.w, self.h = w, h
-    
+
+        self.pp_pixel_size = s
+        self.realw, self.realh = w*s, h*s
+
+    def get_pp_size(self):
+        """Return painting pixel size.
+
+        Returns:
+            int: width or height in real pixels
+        """
+        return self.pp_pixel_size
+
+    def zoom_func(self, new_pp_size):
+        """As the result, zooms in or out the canvas. To achieve this,
+        deletes everything on the canvas first, and repaints it with the
+        desired pixel size, using the canvas data.
+
+        Args:
+            new_pp_size (int): New size for the pixels.
+        """
+        self.delete('all')
+
+        size = new_pp_size
+        for y in range(self.h):
+            for x in range(self.w):
+                
+                if self.iscoord(x, y):
+                    
+                    # Calculating square coords from x, y matrix data.
+                    # Which will be used to paint the canvas again.
+                    topx, topy = x*size, y*size
+                    bottomx, bottomy = (x+1)*size, (y+1)*size
+                    sqrc = (topx, topy, bottomx, bottomy)
+
+                    # Painting the canvas.
+                    pp_color = self.data[y][x][0]
+                    new_id = self.create_rectangle(sqrc, fill=pp_color, outline='')
+                    self.data[y][x] = (pp_color, new_id)                    
+
     def to_square_coords(self, x, y):
         """Use mouse coordinates relative to canvas, to calculate 
         four coordinates that form a square.
