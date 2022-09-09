@@ -131,7 +131,7 @@ class PiePixelEditor():
         # Size values for the canvas. It will be 50x50 by painting pixels. And 
         # Each painting pixel be 20 real pixels wide and high.
         wpp = hpp = 50
-        pp_size = 50
+        pp_size = 20
 
         # Creating the scrollable canvas.
         h_scroll = ttk.Scrollbar(root, orient=HORIZONTAL)
@@ -145,13 +145,32 @@ class PiePixelEditor():
         v_scroll['command'] = self.canvas.yview
         
         self.canvas.grid(column=0, row=1)
-        h_scroll.grid(column=0, row=2, sticky=(W, E))
+        h_scroll.grid(column=0, row=3, sticky=(W, E))
         v_scroll.grid(column=1, row=1, sticky=(N, S))
+
+        # Bottom frame, for zoom and some extra information.
+        ttk.Style().configure('Interface.TFrame', background='#dbdbdb')
+        bottomframe = ttk.Frame(root, style='Interface.TFrame')
+        bottomframe.grid(column=0, row=2, sticky=W, pady=4)
+
+        # An indicator that shows the current selected tool.
+        toolname = StringVar()
+
+        def tool_changed(event=0):
+            mode_dict = {0: 'paint', 1: 'erase', 2: 'color pick', 3: 'fill tool'}
+
+            tool_code = self.canvas.get_mode()
+            toolname.set(mode_dict[tool_code])
+
+        toolname.set('paint')
+        
+        self.canvas.bind('<<ToolChanged>>', tool_changed)
+        tool_label = ttk.Label(bottomframe, textvariable=toolname, anchor=W)
+        # tool_label.grid(column=0, row=0, sticky=W)
 
         # This part is for interface, the part that is above the canvas, where you select tools.
         # Each tool is actually a frame, where each frame consist of more frames and labels in them.
         # The tools are the painter, eraser, color selector, color picker, filler, zoom out, zoom in.
-        ttk.Style().configure('Interface.TFrame', background='#dbdbdb')
         interface = ttk.Frame(root, style='Interface.TFrame')
         interface.grid(column=0, row=0, sticky=(N, S, W, E))
 
@@ -371,3 +390,4 @@ class PiePixelEditor():
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
             self.canvas['height'] = h
+

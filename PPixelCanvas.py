@@ -332,6 +332,8 @@ class PPixelPaintingCanvas(Canvas):
         if mode not in (0, 1, 2, 3):
             raise ValueError('Unknown mode!')
         self.tool_mode = mode
+
+        self.event_generate('<<ToolChanged>>')
         
     def get_mode(self):
         """Returns the current tool mode.
