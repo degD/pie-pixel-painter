@@ -151,22 +151,28 @@ class PiePixelEditor():
         # Bottom frame, for zoom and some extra information.
         ttk.Style().configure('Interface.TFrame', background='#dbdbdb')
         bottomframe = ttk.Frame(root, style='Interface.TFrame')
-        bottomframe.grid(column=0, row=2, sticky=W, pady=4)
+        bottomframe.grid(column=0, row=2, sticky=(N, S, W, E), pady=4)
 
         # An indicator that shows the current selected tool.
         toolname = StringVar()
+        toolname.set('paint tool')
+
+        tool_label = ttk.Label(bottomframe, textvariable=toolname, width=11, background='#dbdbdb', anchor='center')
+        tool_label.grid(column=0, row=0, sticky=W, padx=2)
 
         def tool_changed(event=0):
-            mode_dict = {0: 'paint', 1: 'erase', 2: 'color pick', 3: 'fill tool'}
+            mode_dict = {0: 'paint tool', 1: 'eraser', 2: 'color picker', 3: 'fill tool'}
 
             tool_code = self.canvas.get_mode()
             toolname.set(mode_dict[tool_code])
 
-        toolname.set('paint')
-        
         self.canvas.bind('<<ToolChanged>>', tool_changed)
-        tool_label = ttk.Label(bottomframe, textvariable=toolname, anchor=W)
-        # tool_label.grid(column=0, row=0, sticky=W)
+
+        # A thin separator.
+        ttk.Separator(bottomframe, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S))
+
+        # An indicator that shows the canvas size in pixels.
+        # cv_size = StringVar()
 
         # This part is for interface, the part that is above the canvas, where you select tools.
         # Each tool is actually a frame, where each frame consist of more frames and labels in them.
