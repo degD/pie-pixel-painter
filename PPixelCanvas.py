@@ -59,6 +59,16 @@ class PPixelPaintingCanvas(Canvas):
         self.pp_pixel_size = s
         self.realw, self.realh = w*s, h*s
 
+        self.event_generate('<<NewCanvas>>')
+
+    def get_dimensions(self):
+        """Returns a string, containing dimensions of canvas, in painting pixels.
+
+        Returns:
+            str: 'width x height px'
+        """
+        return f'{self.w}x{self.h} px'
+
     def get_pp_size(self):
         """Return painting pixel size.
 
