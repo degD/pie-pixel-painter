@@ -75,34 +75,7 @@ class PPixelPaintingCanvas(Canvas):
         Returns:
             int: width or height in real pixels
         """
-        return self.pp_pixel_size
-
-    def zoom_func(self, new_pp_size):
-        """As the result, zooms in or out the canvas. To achieve this,
-        deletes everything on the canvas first, and repaints it with the
-        desired pixel size, using the canvas data.
-
-        Args:
-            new_pp_size (int): New size for the pixels.
-        """
-        self.delete('all')
-
-        size = new_pp_size
-        for y in range(self.h):
-            for x in range(self.w):
-                
-                if self.iscoord(x, y):
-                    
-                    # Calculating square coords from x, y matrix data.
-                    # Which will be used to paint the canvas again.
-                    topx, topy = x*size, y*size
-                    bottomx, bottomy = (x+1)*size, (y+1)*size
-                    sqrc = (topx, topy, bottomx, bottomy)
-
-                    # Painting the canvas.
-                    pp_color = self.data[y][x][0]
-                    new_id = self.create_rectangle(sqrc, fill=pp_color, outline='')
-                    self.data[y][x] = (pp_color, new_id)                    
+        return self.pp_pixel_size                 
 
     def to_square_coords(self, x, y):
         """Use mouse coordinates relative to canvas, to calculate 

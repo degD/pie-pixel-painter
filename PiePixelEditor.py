@@ -182,7 +182,7 @@ class PiePixelEditor():
         self.canvas.bind('<<ToolChanged>>', tool_changed)
 
         # A thin separator.
-        ttk.Separator(bottomframe, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S, W, E))
+        ttk.Separator(bottomframe, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S, W))
 
         # An indicator that shows the canvas size in painting pixels.
         cvsize = StringVar()
@@ -196,6 +196,16 @@ class PiePixelEditor():
             cvsize.set(size_str)
 
         self.canvas.bind('<<NewCanvas>>', update_size)
+
+        # A thin separator.
+        ttk.Separator(bottomframe, orient=VERTICAL).grid(column=3, row=0, sticky=(N, S, W))
+
+        # Zoom indicator.
+        zoom_percent = StringVar()
+        zoom_percent.set('100%')
+
+        zoom_label = ttk.Label(bottomframe, textvariable=zoom_percent, width=6, background='#dbdbdb', anchor='center')
+        zoom_label.grid(column=4, row=0, sticky=W, padx=2)
 
         # This part is for interface, the part that is above the canvas, where you select tools.
         # Each tool is actually a frame, where each frame consist of more frames and labels in them.
@@ -418,7 +428,7 @@ class PiePixelEditor():
                 wpp = int(wpp)
                 if wpp > 256:
                     wpp = 256
-                    
+
             if hpp:
                 hpp = int(hpp)
                 if hpp > 256:
