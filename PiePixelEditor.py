@@ -1,4 +1,5 @@
 
+from hashlib import new
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
@@ -12,7 +13,7 @@ class SizeDlg():
     """
     A class for generating new window/size dialogs.
     """
-    def __init__(self, subwindow):
+    def __init__(self, subwindow, cv_size):
         """Generate a dialog window.
         
         Args:
@@ -48,18 +49,30 @@ class SizeDlg():
         frame = ttk.Frame(root)
         frame.grid(column=0, row=0, sticky=(N, S, W, E), padx=5, pady=5)
         
-        ttk.Label(frame, text='Width:').grid(column=0, row=0, sticky=(N, S, W, E))
-        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=(N, S, W, E))
+        ttk.Label(frame, text='Width: ').grid(column=0, row=0, sticky=W)
+        ttk.Label(frame, text='Height:').grid(column=0, row=1, sticky=W)
         
+        # Adding the size entries.
+        cvw, cvh = cv_size
+
+        def entry_check(newval):
+            return newval=='' or newval.isnumeric()
+        entry_check_wrapper = (root.register(entry_check), '%P')
+
         self.w = StringVar()
-        self.w.set(0)
-        wentry = ttk.Entry(frame, width=5, textvariable=self.w)
-        wentry.grid(column=1, row=0, sticky=(N, S, W, E), pady=4)
+        self.w.set(cvw)
+        wentry = ttk.Entry(frame, width=5, textvariable=self.w, validate='key', validatecommand=entry_check_wrapper)
+        wentry.grid(column=1, row=0, sticky=(W, E), pady=4)
         
         self.h = StringVar()
-        self.h.set(0)
-        hentry = ttk.Entry(frame, width=5, textvariable=self.h)
-        hentry.grid(column=1, row=1, sticky=(N, S, W, E), pady=4)
+        self.h.set(cvh)
+        hentry = ttk.Entry(frame, width=5, textvariable=self.h, validate='key', validatecommand=entry_check_wrapper)
+        hentry.grid(column=1, row=1, sticky=(W, E), pady=4)
+
+        # Warning text.
+        warn_text = 'Warning: Width and height\nshould be between 1-256'
+        warn_label = ttk.Label(frame, text=warn_text, font=('TkDefaultFont', 10), foreground='#5e5e5e', anchor='center', justify='center', )
+        warn_label.grid(column=0, row=2, columnspan=2, sticky=(W, E))
         
         # A bool value that is bound to the state of new possible window.
         # True if a new canvas will be created and false otherwise.
@@ -71,10 +84,10 @@ class SizeDlg():
         
         # Creating the buttons for the dialog.
         okbutton = ttk.Button(frame, text='Ok', command=setstate)
-        okbutton.grid(column=0, row=2, sticky=(N, S), padx=3, pady=3)
+        okbutton.grid(column=0, row=3, sticky=(N, S), padx=3, pady=3)
         
         cancelbutton = ttk.Button(frame, text='Cancel', command=exitdlg)
-        cancelbutton.grid(column=1, row=2, sticky=(N, S), padx=3, pady=3)
+        cancelbutton.grid(column=1, row=3, sticky=(N, S), padx=3, pady=3)
         
         # For blocking execution until this window destroyed.
         root.wait_window()
@@ -92,9 +105,9 @@ class SizeDlg():
         """Return the width and height of new canvas, as painting pixels.
 
         Returns:
-            tuple: A tuple with two integer items, first is width and second one is height.
+            tuple: A tuple with two string items, first is width and second one is height.
         """
-        return int(self.w.get()), int(self.h.get())
+        return self.w.get(), self.h.get()
    
 
 class PiePixelEditor():
@@ -391,17 +404,31 @@ class PiePixelEditor():
         Raising the new canvas dialog. Cleaning and editing the existing canvas by the inputs.
         """
         # Creating the dialog and getting the state, for in case of an exit.
-        new = SizeDlg(self.root)
+        canvas_dimensions = self.canvas.w, self.canvas.h
+        new = SizeDlg(self.root, canvas_dimensions)
         state = new.getstate()
-        
-        # The width and height are inputed as painting pixels.
-        # So converting them to screen pixels first.
-        size_pp = self.canvas.get_pp_size()
-        wpp, hpp = new.getsize()
-        w, h = wpp*size_pp, hpp*size_pp
-        
+
         # Editing the canvas.
         if state:
+            
+            # Being sure that width and height are integers between 1-256.
+            wpp, hpp = new.getsize()
+
+            if wpp:
+                wpp = int(wpp)
+                if wpp > 256:
+                    wpp = 256
+                    
+            if hpp:
+                hpp = int(hpp)
+                if hpp > 256:
+                    hpp = 256
+
+            # The width and height are inputed as painting pixels.
+            # So converting them to screen pixels, first.
+            size_pp = self.canvas.get_pp_size()
+            w, h = wpp*size_pp, hpp*size_pp
+
             self.canvas.refresh_canvas_data(wpp, hpp, size_pp)
             self.canvas['scrollregion'] = (0, 0, w, h)
             self.canvas['width'] = w
